@@ -1,0 +1,25 @@
+<h2>Редактировать продукцию</h2>
+
+<form method="POST">
+    <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <a href="/products" class="btn btn-secondary">Отмена</a>
+        <button type="submit" class="btn btn-success">Сохранить изменения</button>
+    </div>
+    
+    <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" name="is_available" <%= product.is_available ? 'checked' : '' %> style="width: auto; margin-right: 8px;">
+            <span>Доступен для заказа</span>
+        </label>
+    </div>
+    
+    <div class="form-group">
+        <label for="price">Минимальная цена для партнера (₽) <span style="color: var(--danger-color);">*</span></label>
+        <input type="number" id="price" name="price" step="0.01" value="<%= product.min_partner_price %>" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="name">Название продукции <span style="color: var(--danger-color);">*</span></label>
+        <input type="text" id="name" name="name" value="<%= product.product_name %>" required>
+    </div>
+</form>

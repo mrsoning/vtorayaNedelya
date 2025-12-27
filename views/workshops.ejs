@@ -1,0 +1,40 @@
+<h2>Цеха</h2>
+
+<% if (workshops && workshops.length > 0) { %>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название цеха</th>
+            <th>Тип цеха</th>
+            <th>Персонал</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% workshops.forEach(function(workshop) { %>
+        <tr>
+            <td><%= workshop.workshop_id %></td>
+            <td><strong><%= workshop.workshop_name %></strong></td>
+            <td><%= workshop.workshop_type %></td>
+            <td><%= workshop.staff_count %> чел.</td>
+            <td>
+                <% if (workshop.is_active) { %>
+                <span class="badge badge-success">Активен</span>
+                <% } else { %>
+                <span class="badge badge-danger">Неактивен</span>
+                <% } %>
+            </td>
+        </tr>
+        <% }); %>
+    </tbody>
+</table>
+
+<p class="info-text">
+    Всего цехов: <strong><%= workshops.length %></strong>
+</p>
+<% } else { %>
+<div class="alert alert-danger">
+    Цеха не найдены.
+</div>
+<% } %>

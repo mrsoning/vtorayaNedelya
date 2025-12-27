@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER-диаграмма базы данных</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .export-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .export-info h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .file-info {
+            background-color: #f1f8e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #4caf50;
+        }
+        .file-info h3 {
+            margin-top: 0;
+            color: #388e3c;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ER-диаграмма системы управления заявками на ремонт климатического оборудования</h1>
+        
+        <div class="export-info">
+            <h3>Инструкции по экспорту в PNG</h3>
+            <p>Для создания PNG версии диаграммы:</p>
+            <ol>
+                <li>Откройте этот файл в браузере</li>
+                <li>Нажмите правой кнопкой мыши на диаграмме</li>
+                <li>Выберите "Сохранить изображение как..." или используйте инструменты разработчика для экспорта SVG</li>
+                <li>Или используйте функцию печати браузера для сохранения в PDF</li>
+            </ol>
+        </div>
+
+        <div class="file-info">
+            <h3>Созданные файлы</h3>
+            <ul>
+                <li><code>docs/er_diagram.md</code> - Подробное описание ER-диаграммы с Mermaid кодом</li>
+                <li><code>docs/er_diagram.svg</code> - SVG версия диаграммы</li>
+                <li><code>docs/er_diagram_viewer.html</code> - Этот HTML файл для просмотра</li>
+            </ul>
+        </div>
+        
+        <div class="diagram-container">
+            <object data="er_diagram.svg" type="image/svg+xml" width="1400" height="1000">
+                <p>Ваш браузер не поддерживает SVG. Пожалуйста, откройте файл er_diagram.svg напрямую.</p>
+            </object>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <h2>Описание диаграммы</h2>
+            <p>Данная ER-диаграмма представляет полную структуру базы данных системы управления заявками на ремонт климатического оборудования в третьей нормальной форме (3НФ) с обеспечением ссылочной целостности.</p>
+            
+            <h3>Основные характеристики:</h3>
+            <ul>
+                <li><strong>8 основных сущностей</strong> с правильно определенными атрибутами</li>
+                <li><strong>Первичные ключи (PK)</strong> для каждой таблицы</li>
+                <li><strong>Внешние ключи (FK)</strong> для обеспечения ссылочной целостности</li>
+                <li><strong>Уникальные ключи (UK)</strong> для бизнес-логики</li>
+                <li><strong>Правильные кардинальности</strong> связей (1:1, 1:M)</li>
+                <li><strong>Соответствие 3НФ</strong> - отсутствие избыточности и транзитивных зависимостей</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

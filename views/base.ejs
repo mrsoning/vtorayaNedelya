@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Система учета заявок на ремонт климатического оборудования' %></title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #2980b9;
+            --success-color: #27ae60;
+            --danger-color: #c0392b;
+            --warning-color: #d68910;
+            --info-color: #5499c7;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.05);
+        }
+        
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 24px 40px;
+            border-bottom: 3px solid var(--accent-color);
+        }
+        
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        header p {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        
+        .user-info {
+            float: right;
+            margin-top: -40px;
+            font-size: 14px;
+        }
+        
+        .user-info .user-name {
+            font-weight: 600;
+        }
+        
+        .user-info .user-role {
+            opacity: 0.8;
+            font-size: 12px;
+        }
+        
+        nav {
+            background: white;
+            padding: 0 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+        
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 16px 20px;
+            display: inline-block;
+            font-weight: 500;
+            font-size: 14px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        nav a:hover {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+            background: rgba(52, 152, 219, 0.05);
+        }
+        
+        nav a.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+        
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        
+        main {
+            padding: 32px 40px;
+            max-width: 100%;
+        }
+        
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--light-bg);
+        }
+        
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .btn {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border: 2px solid #34495e;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+        
+        .btn:hover {
+            background: #34495e;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: #2c3e50;
+        }
+        
+        .btn-primary:hover {
+            background: #34495e;
+        }
+        
+        .btn-danger {
+            background: #6c757d;
+        }
+        
+        .btn-danger:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #2c3e50;
+            border: 2px solid #34495e;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #34495e;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #6c757d;
+        }
+        
+        .btn-warning:hover {
+            background: #5a6268;
+        }
+        
+        .btn-info {
+            background: #495057;
+            border: 2px solid #6c757d;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: var(--light-bg);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            font-size: 14px;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background: rgba(52, 152, 219, 0.03);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
+            transition: all 0.2s;
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card h3 {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+        }
+        
+        .stat-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        .stat-card.success {
+            border-left-color: #6c757d;
+        }
+        
+        .stat-card.success h3 {
+            color: #6c757d;
+        }
+        
+        .stat-card.warning {
+            border-left-color: #6c757d;
+        }
+        
+        .stat-card.warning h3 {
+            color: #6c757d;
+        }
+        
+        .search-box {
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            width: 320px;
+            margin-right: 8px;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        form {
+            max-width: 600px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .alert {
+            padding: 14px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            background: #d5f4e6;
+            color: #0f5132;
+            border-left-color: var(--success-color);
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #842029;
+            border-left-color: var(--danger-color);
+        }
+        
+        .alert-info {
+            background: #cce7f0;
+            color: #055160;
+            border-left-color: var(--info-color);
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--light-bg);
+            border-radius: 4px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .badge-success {
+            background: #6c757d;
+        }
+        
+        .badge-danger {
+            background: #6c757d;
+        }
+        
+        .badge-warning {
+            background: #6c757d;
+        }
+        
+        .badge-info {
+            background: #495057;
+        }
+        
+        .badge-secondary {
+            background: #6c757d;
+        }
+        
+        .info-text {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .qr-code {
+            text-align: center;
+            padding: 20px;
+            background: var(--light-bg);
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .qr-code img {
+            max-width: 200px;
+            height: auto;
+        }
+        
+        .comments-section {
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        
+        .comment {
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .comment-header {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .priority-1 { color: #adb5bd; }
+        .priority-2 { color: #6c757d; }
+        .priority-3 { color: #495057; }
+        .priority-4 { color: #343a40; }
+        .priority-5 { color: #212529; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <% if (user) { %>
+        <nav>
+            <div class="nav-user">
+                <span><%= user.full_name %></span>
+                <div style="font-size: 12px; opacity: 0.8;"><%= user.user_type %></div>
+                <a href="/logout" class="logout-btn">Выйти</a>
+            </div>
+            
+            <div class="nav-links">
+                <% 
+                // Очищаем тип пользователя от лишних символов
+                const userType = user.user_type.trim();
+                %>
+                <% if (userType === 'Заказчик') { %>
+                    <!-- Меню для заказчиков -->
+                    <a href="/requests/create">Новая заявка</a>
+                    <a href="/my-requests">Мои заявки</a>
+                <% } else if (userType === 'Специалист') { %>
+                    <!-- Меню для специалистов -->
+                    <a href="/requests">Все заявки</a>
+                    <a href="/my-work">Мои работы</a>
+                <% } else if (userType === 'Оператор') { %>
+                    <!-- Меню для операторов -->
+                    <a href="/requests/create">Новая заявка</a>
+                    <a href="/requests">Все заявки</a>
+                <% } else if (userType === 'Менеджер' || userType === 'Менеджер по качеству') { %>
+                    <!-- Меню для менеджеров -->
+                    <a href="/reports">Отчеты</a>
+                    <a href="/my-work">Мои работы</a>
+                    <a href="/requests">Все заявки</a>
+                    <a href="/requests/create">Новая заявка</a>
+                    <a href="/my-requests">Мои заявки</a>
+                <% } %>
+                
+                <a href="/">Главная</a>
+            </div>
+        </nav>
+        <% } %>
+
+        <header>
+            <div style="text-align: center;">
+                <h1>Климат-Сервис</h1>
+                <p>Система учета заявок на ремонт климатического оборудования</p>
+            </div>
+        </header>
+        
+        <main>
+            <%- body %>
+        </main>
+    </div>
+    
+    <footer style="background: #2c3e50; color: white; text-align: center; padding: 20px; margin-top: 40px;">
+        <p>&copy; 2025 Климат-Сервис. Система учета заявок на ремонт климатического оборудования.</p>
+    </footer>
+    
+    <script>
+        // Функция для обновления моделей оборудования
+        function updateModels(typeId, modelSelectId) {
+            const modelSelect = document.getElementById(modelSelectId);
+            if (!modelSelect) return;
+            
+            if (!typeId) {
+                modelSelect.innerHTML = '<option value="">Сначала выберите тип</option>';
+                modelSelect.disabled = true;
+                return;
+            }
+            
+            fetch(`/api/equipment-models/${typeId}`)
+                .then(response => response.json())
+                .then(models => {
+                    modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                    models.forEach(model => {
+                        modelSelect.innerHTML += `<option value="${model.model_id}">${model.model_name}</option>`;
+                    });
+                    modelSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки моделей:', error);
+                    modelSelect.innerHTML = '<option value="">Ошибка загрузки</option>';
+                });
+        }
+        
+        // Функция для назначения специалиста
+        function assignMaster(requestId, masterId) {
+            fetch('/api/assign-master', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    request_id: requestId,
+                    master_id: masterId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при назначении специалиста');
+            });
+        }
+        
+        // Функция для обновления статуса
+        function updateStatus(requestId, statusId) {
+            fetch('/api/update-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    request_id: requestId,
+                    status_id: statusId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при обновлении статуса');
+            });
+        }
+        
+        // Функция для добавления комментария
+        function addComment(requestId, message) {
+            if (!message.trim()) {
+                alert('Введите текст комментария');
+                return;
+            }
+            
+            fetch('/api/add-comment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    request_id: requestId,
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при добавлении комментария');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<h2><%= title %></h2>
+
+<% if (userRole === 'Заказчик' || userRole === 'Специалист') { %>
+<div class="card" style="margin-top: 20px; background-color: #f8f9fa; border-left: 4px solid #007bff;">
+    <p><strong>Информация:</strong> 
+        <% if (userRole === 'Заказчик') { %>
+            Данная статистика показывает информацию только по вашим заявкам.
+        <% } else if (userRole === 'Специалист') { %>
+            Данная статистика показывает информацию только по заявкам, назначенным на вас.
+        <% } %>
+    </p>
+</div>
+<% } %>
+
+<!-- Статистика по специалистам (только для определенных ролей) -->
+<% if (workshopStats && workshopStats.length > 0 && ['Менеджер', 'Менеджер по качеству', 'Администратор', 'Специалист'].includes(userRole)) { %>
+<div class="card">
+    <h3>
+        <% if (userRole === 'Специалист') { %>
+            Моя статистика работ
+        <% } else { %>
+            Статистика по специалистам
+        <% } %>
+    </h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Среднее время (дни)</th>
+                <th>Процент выполнения</th>
+                <th>Завершено</th>
+                <th>Назначено заявок</th>
+                <th>Специалист</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% workshopStats.forEach(stat => { %>
+            <tr>
+                <td><%= stat.avg_time %></td>
+                <td><%= stat.completion_rate %>%</td>
+                <td><%= stat.completed_count %></td>
+                <td><%= stat.assigned_count %></td>
+                <td><%= stat.workshop_name %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<% } %>
+
+<!-- Статистика по статусам -->
+<div class="card">
+    <h3>Статистика по статусам заявок</h3>
+    
+    <% if (statusStats.length > 0) { %>
+    <table>
+        <thead>
+            <tr>
+                <th>Процент</th>
+                <th>Количество</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% statusStats.forEach(stat => { %>
+            <tr>
+                <td><%= totalRequests > 0 ? Math.round((stat.count / totalRequests) * 100) : 0 %>%</td>
+                <td><%= stat.count %></td>
+                <td>
+                    <span class="badge" style="background-color: <%= stat.status_color %>;">
+                        <%= stat.status_name %>
+                    </span>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+    <% } else { %>
+    <p>Нет данных для отображения</p>
+    <% } %>
+</div>
+
+<!-- Статистика по типам оборудования -->
+<div class="card" style="margin-top: 30px;">
+    <h3>Статистика по типам оборудования</h3>
+    
+    <% if (equipmentStats.length > 0) { %>
+    <table>
+        <thead>
+            <tr>
+                <th>Процент</th>
+                <th>Количество заявок</th>
+                <th>Тип оборудования</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% equipmentStats.forEach(stat => { %>
+            <tr>
+                <td><%= totalRequests > 0 ? Math.round((stat.count / totalRequests) * 100) : 0 %>%</td>
+                <td><%= stat.count %></td>
+                <td><%= stat.type_name %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+    <% } else { %>
+    <p>Нет данных для отображения</p>
+    <% } %>
+</div>
+
+<!-- Общая статистика -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3><%= avgCompletionTime %></h3>
+        <p>Среднее время (дни)</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3><%= completedRequests %></h3>
+        <p>Завершено</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3><%= activeRequests %></h3>
+        <p>В работе</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3><%= totalRequests %></h3>
+        <p>
+            <% if (userRole === 'Заказчик') { %>
+                Всего моих заявок
+            <% } else if (userRole === 'Специалист') { %>
+                Всего моих работ
+            <% } else { %>
+                Всего заявок
+            <% } %>
+        </p>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div>
+        <span class="info-text">Обновлено: <%= new Date().toLocaleDateString('ru-RU') %></span>
+        <a href="/reports/export-pdf" class="btn btn-primary" style="margin-left: 10px;">
+            📄 Экспорт в PDF
+        </a>
+    </div>
+    <div>
+        <strong>
+            <% if (userRole === 'Заказчик') { %>
+                Аналитика по вашим заявкам
+            <% } else if (userRole === 'Специалист') { %>
+                Аналитика по вашим работам
+            <% } else { %>
+                Аналитика системы
+            <% } %>
+        </strong>
+    </div>
+</div>

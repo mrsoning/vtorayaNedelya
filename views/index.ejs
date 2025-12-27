@@ -1,0 +1,224 @@
+<%
+// Очищаем тип пользователя от лишних символов
+const userType = user.user_type.trim();
+%>
+
+<h2>Панель управления</h2>
+
+<!-- Информация о пользователе -->
+<div class="card">
+    <h3>Информация о пользователе</h3>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+        <div>
+            <p><strong>ФИО:</strong> <%= user.full_name %></p>
+            <p><strong>Роль:</strong> <%= user.user_type %></p>
+            <p><strong>Телефон:</strong> <%= user.phone %></p>
+        </div>
+        <div>
+            <p><strong>Логин:</strong> <%= user.login %></p>
+            <p><strong>Статус:</strong> 
+                <span class="badge badge-success">Активен</span>
+            </p>
+        </div>
+    </div>
+    
+    <% if (userType === 'Заказчик' && userStats) { %>
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+        <h4>Моя статистика</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px;">
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #495057;"><%= userStats.myRequests %></div>
+                <div style="font-size: 12px; color: #6c757d;">Всего заявок</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #495057;"><%= userStats.myActive %></div>
+                <div style="font-size: 12px; color: #6c757d;">В работе</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #495057;"><%= userStats.myCompleted %></div>
+                <div style="font-size: 12px; color: #6c757d;">Завершено</div>
+            </div>
+        </div>
+    </div>
+    <% } %>
+    
+    <% if (userType === 'Специалист' && userStats) { %>
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+        <h4>Моя рабочая статистика</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px;">
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #495057;"><%= userStats.assignedToMe %></div>
+                <div style="font-size: 12px; color: #6c757d;">Назначено</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #495057;"><%= userStats.myActive %></div>
+                <div style="font-size: 12px; color: #6c757d;">В работе</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #495057;"><%= userStats.myCompleted %></div>
+                <div style="font-size: 12px; color: #6c757d;">Выполнено</div>
+            </div>
+        </div>
+    </div>
+    <% } %>
+</div>
+
+<div class="toolbar">
+    <div>
+        <span class="info-text">Сегодня: <%= new Date().toLocaleDateString('ru-RU') %></span>
+    </div>
+    <div>
+        <strong>Добро пожаловать, <%= user.full_name %>!</strong>
+        <span class="info-text">Роль: <%= user.user_type %></span>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="card" style="margin-top: 30px;">
+    <h3>Быстрые действия</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+        
+
+        
+        <% if (userType === 'Заказчик') { %>
+            <!-- Кнопки для заказчиков -->
+            <a href="/my-requests" class="btn btn-info" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Мои заявки</div>
+            </a>
+            
+            <a href="/requests/create" class="btn btn-success" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Создать заявку</div>
+            </a>
+            
+        <% } else if (userType === 'Специалист') { %>
+            <!-- Кнопки для специалистов -->
+            <a href="/requests" class="btn btn-primary" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Все заявки</div>
+            </a>
+            
+            <a href="/my-work" class="btn btn-warning" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Мои работы</div>
+            </a>
+            
+        <% } else if (userType === 'Оператор') { %>
+            <!-- Кнопки для операторов -->
+            <a href="/requests/create" class="btn btn-success" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Создать заявку</div>
+            </a>
+            
+            <a href="/requests" class="btn btn-primary" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Все заявки</div>
+            </a>
+            
+        <% } else if (userType === 'Менеджер' || userType === 'Менеджер по качеству') { %>
+            <!-- Кнопки для менеджеров -->
+            <a href="/reports" class="btn btn-secondary" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Отчеты</div>
+            </a>
+            
+            <a href="/my-work" class="btn btn-warning" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Мои работы</div>
+            </a>
+            
+            <a href="/requests" class="btn btn-primary" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Все заявки</div>
+            </a>
+            
+            <a href="/my-requests" class="btn btn-info" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Мои заявки</div>
+            </a>
+            
+            <a href="/requests/create" class="btn btn-success" style="text-align: center; padding: 20px; font-weight: bold; display: block; color: white !important; text-decoration: none;">
+                <div style="color: white;">Создать заявку</div>
+            </a>
+        <% } else { %>
+            <!-- Fallback для неизвестных ролей -->
+            <div style="text-align: center; padding: 20px; color: #6c757d;">
+                Нет доступных действий для вашей роли
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Общая статистика -->
+<div class="stats-grid">
+    <div class="stat-card success">
+        <h3><%= completedRequests %></h3>
+        <p>Завершено</p>
+    </div>
+    
+    <div class="stat-card warning">
+        <h3><%= activeRequests %></h3>
+        <p>В работе</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3><%= totalRequests %></h3>
+        <p>Всего заявок</p>
+    </div>
+    
+    <% if (userType === 'Заказчик' && userStats) { %>
+    <div class="stat-card" style="border-left-color: #6c757d;">
+        <h3 style="color: #6c757d;"><%= userStats.myRequests %></h3>
+        <p>Мои заявки</p>
+    </div>
+    <% } %>
+    
+    <% if (userType === 'Специалист' && userStats) { %>
+    <div class="stat-card" style="border-left-color: #6c757d;">
+        <h3 style="color: #6c757d;"><%= userStats.assignedToMe %></h3>
+        <p>Назначено мне</p>
+    </div>
+    <% } %>
+</div>
+
+<!-- Справочная информация -->
+<div class="card">
+    <h3>Справочная информация</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;">
+        <div>
+            <h4>Приоритеты заявок</h4>
+            <ul style="list-style: none; padding: 0; margin-top: 10px;">
+                <li style="margin-bottom: 8px;">
+                    <span class="priority-5">●</span> <strong>5 - Критический:</strong> Аварийные ситуации
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="priority-4">●</span> <strong>4 - Высокий:</strong> Срочные заявки
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="priority-3">●</span> <strong>3 - Средний:</strong> Важные работы
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="priority-2">●</span> <strong>2 - Обычный:</strong> Стандартные заявки
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="priority-1">●</span> <strong>1 - Низкий:</strong> Плановые работы
+                </li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4>Статусы заявок</h4>
+            <ul style="list-style: none; padding: 0; margin-top: 10px;">
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-success">Завершена</span> - Полностью выполнена
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-info">Готова к выдаче</span> - Ремонт завершен
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-secondary">Ожидание комплектующих</span> - Нужны запчасти
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-warning">В процессе ремонта</span> - Принята в работу
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-info">Новая заявка</span> - Ожидает обработки
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

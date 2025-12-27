@@ -1,0 +1,128 @@
+<h2>Создание новой заявки</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+    <div>
+        <div class="card">
+            <h3>Контактная информация</h3>
+            <p><strong>Ваши данные:</strong></p>
+            <p>ФИО: <%= user.full_name %></p>
+            <p>Телефон: <%= user.phone %></p>
+            
+            <div class="info-text" style="margin-top: 15px;">
+                Если нужно изменить контактные данные, обратитесь к администратору системы.
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Полезные советы</h3>
+            
+            <h4>Приоритеты заявок:</h4>
+            <ul style="font-size: 14px; line-height: 1.6;">
+                <li><span class="priority-1">●</span> <strong>Низкий:</strong> Мелкие недочеты, плановые работы</li>
+                <li><span class="priority-2">●</span> <strong>Обычный:</strong> Стандартные заявки</li>
+                <li><span class="priority-3">●</span> <strong>Средний:</strong> Обычные проблемы, требующие внимания</li>
+                <li><span class="priority-4">●</span> <strong>Высокий:</strong> Серьезные неисправности, влияющие на работу</li>
+                <li><span class="priority-5">●</span> <strong>Критический:</strong> Полный отказ системы, аварийная ситуация</li>
+            </ul>
+            
+            <h4 style="margin-top: 20px;">Как правильно описать проблему:</h4>
+            <ul style="font-size: 14px; line-height: 1.6;">
+                <li>Укажите, что уже пытались делать для решения</li>
+                <li>Опишите условия, при которых проблема проявляется</li>
+                <li>Укажите модель и год выпуска (если знаете)</li>
+                <li>Опишите все симптомы подробно</li>
+                <li>Укажите, когда началась проблема</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Информация о заявке</h3>
+        
+        <form method="POST" action="/requests/create" id="createRequestForm">
+            <div class="form-group">
+                <label for="priority_level">Приоритет заявки</label>
+                <select id="priority_level" name="priority_level">
+                    <option value="5">5 - Критический (аварийные ситуации)</option>
+                    <option value="4">4 - Высокий (срочные заявки)</option>
+                    <option value="3" selected>3 - Средний (важные работы)</option>
+                    <option value="2">2 - Обычный (стандартные заявки)</option>
+                    <option value="1">1 - Низкий (плановые работы)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="problem_description">Описание проблемы *</label>
+                <textarea id="problem_description" name="problem_description" rows="5" required 
+                          placeholder="Опишите подробно проблему с оборудованием...&#10;&#10;Например:&#10;- Когда началась проблема&#10;- Какие симптомы наблюдаются&#10;- При каких условиях проявляется"></textarea>
+                <div class="info-text">Чем подробнее описание, тем быстрее специалист сможет диагностировать проблему</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="equipment_model">Модель оборудования *</label>
+                <select id="equipment_model" name="equipment_model" required disabled>
+                    <option value="">Сначала выберите тип</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="equipment_type">Тип оборудования *</label>
+                <select id="equipment_type" name="equipment_type" required onchange="updateModels(this.value, 'equipment_model')">
+                    <option value="">Выберите тип оборудования</option>
+                    <% equipmentTypes.forEach(type => { %>
+                        <option value="<%= type.type_id %>"><%= type.type_name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+                <a href="/my-requests" class="btn btn-secondary">
+                    Отмена
+                </a>
+                <button type="submit" class="btn btn-success">
+                    Создать заявку
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div>
+        <a href="/my-requests" class="btn btn-secondary">← Назад к заявкам</a>
+    </div>
+    <div>
+        <strong>Новая заявка на ремонт</strong>
+    </div>
+</div>
+
+<script>
+document.getElementById('createRequestForm').addEventListener('submit', function(e) {
+    const description = document.getElementById('problem_description').value.trim();
+    const equipmentType = document.getElementById('equipment_type').value;
+    const equipmentModel = document.getElementById('equipment_model').value;
+    
+    if (description.length < 10) {
+        e.preventDefault();
+        alert('Описание проблемы должно содержать не менее 10 символов');
+        return false;
+    }
+    
+    if (!equipmentType) {
+        e.preventDefault();
+        alert('Выберите тип оборудования');
+        return false;
+    }
+    
+    if (!equipmentModel) {
+        e.preventDefault();
+        alert('Выберите модель оборудования');
+        return false;
+    }
+    
+    return true;
+});
+
+// Автофокус на первое поле
+document.getElementById('equipment_type').focus();
+</script>

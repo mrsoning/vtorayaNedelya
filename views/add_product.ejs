@@ -1,0 +1,105 @@
+<h2>Добавить продукцию</h2>
+
+<div id="error-message" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+    <strong>Ошибка:</strong> <span id="error-text"></span>
+</div>
+
+<form method="POST" id="productForm" onsubmit="return validateForm()">
+    <div class="form-group">
+        <label for="name">Название продукции <span style="color: var(--danger-color);">*</span></label>
+        <input type="text" id="name" name="name" required placeholder="Введите название продукции" minlength="3" maxlength="200">
+        <small style="color: #6c757d;">Минимум 3 символа</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="article">Артикул <span style="color: var(--danger-color);">*</span></label>
+        <input type="text" id="article" name="article" required placeholder="Введите артикул" pattern="[A-Za-z0-9-]+" maxlength="50">
+        <small style="color: #6c757d;">Только буквы, цифры и дефис</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="product_type_id">Тип продукции <span style="color: var(--danger-color);">*</span></label>
+        <select id="product_type_id" name="product_type_id" required>
+            <option value="">Выберите тип продукции</option>
+            <% productTypes.forEach(function(pt) { %>
+            <option value="<%= pt.product_type_id %>"><%= pt.product_type_name %></option>
+            <% }); %>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="material_type_id">Тип материала <span style="color: var(--danger-color);">*</span></label>
+        <select id="material_type_id" name="material_type_id" required>
+            <option value="">Выберите тип материала</option>
+            <% materialTypes.forEach(function(mt) { %>
+            <option value="<%= mt.material_type_id %>"><%= mt.material_type_name %></option>
+            <% }); %>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="price">Минимальная цена для партнера (₽) <span style="color: var(--danger-color);">*</span></label>
+        <input type="number" id="price" name="price" step="0.01" min="0.01" required placeholder="0.00">
+        <small style="color: #6c757d;">Цена должна быть положительной с точностью до сотых</small>
+    </div>
+    
+    <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <button type="submit" class="btn btn-success">Сохранить</button>
+        <a href="/products" class="btn btn-secondary">Отмена</a>
+    </div>
+</form>
+
+<script>
+function validateForm() {
+    const name = document.getElementById('name').value.trim();
+    const article = document.getElementById('article').value.trim();
+    const productType = document.getElementById('product_type_id').value;
+    const materialType = document.getElementById('material_type_id').value;
+    const price = parseFloat(document.getElementById('price').value);
+    
+    // Проверка названия
+    if (name.length < 3) {
+        showError('Название продукции должно содержать минимум 3 символа');
+        return false;
+    }
+    
+    // Проверка артикула
+    if (!/^[A-Za-z0-9-]+$/.test(article)) {
+        showError('Артикул может содержать только буквы, цифры и дефис');
+        return false;
+    }
+    
+    // Проверка типа продукции
+    if (!productType) {
+        showError('Выберите тип продукции');
+        return false;
+    }
+    
+    // Проверка типа материала
+    if (!materialType) {
+        showError('Выберите тип материала');
+        return false;
+    }
+    
+    // Проверка цены
+    if (isNaN(price) || price <= 0) {
+        showError('Цена должна быть положительным числом');
+        return false;
+    }
+    
+    if (!/^\d+(\.\d{1,2})?$/.test(document.getElementById('price').value)) {
+        showError('Цена должна быть с точностью до сотых (например: 1234.56)');
+        return false;
+    }
+    
+    return true;
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    errorText.textContent = message;
+    errorDiv.style.display = 'block';
+    window.scrollTo(0, 0);
+}
+</script>

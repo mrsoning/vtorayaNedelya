@@ -1,0 +1,157 @@
+<h2>Заявка <%= request.request_number %></h2>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+    <!-- Боковая панель -->
+    <div>
+        <!-- QR-код для оценки качества -->
+        <% if (qrCodeData) { %>
+        <div class="card">
+            <h3>Оценка качества</h3>
+            <div class="qr-code">
+                <p>Отсканируйте QR-код для оценки работы:</p>
+                <img src="<%= qrCodeData %>" alt="QR-код для оценки качества">
+                <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">
+                    QR-код ведет на форму оценки: "Хорошо", "Нормально", "Плохо"
+                </p>
+                <p style="font-size: 11px; color: #6c757d; margin-top: 5px;">
+                    Или перейдите по ссылке: 
+                    <a href="/quality-rating/<%= request.request_id %>" target="_blank" style="color: #2c3e50;">
+                        Оценить качество работ
+                    </a>
+                </p>
+            </div>
+        </div>
+        <% } %>
+        
+        <!-- Управление заявкой -->
+        <div class="card">
+            <h3>Управление</h3>
+            
+            <% if (statuses) { %>
+            <div class="form-group">
+                <label>Изменить статус:</label>
+                <select id="statusSelect" onchange="updateStatus(<%= request.request_id %>, this.value)">
+                    <option value="">Выберите статус</option>
+                    <% statuses.forEach(status => { %>
+                        <option value="<%= status.status_id %>" <%= status.status_id === request.status_id ? 'selected' : '' %>>
+                            <%= status.status_name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+            <% } %>
+            
+            <% if (!request.master_id && specialists) { %>
+            <div class="form-group">
+                <label>Назначить специалиста:</label>
+                <select id="masterSelect" onchange="assignMaster(<%= request.request_id %>, this.value)">
+                    <option value="">Выберите специалиста</option>
+                    <% specialists.forEach(specialist => { %>
+                        <option value="<%= specialist.user_id %>"><%= specialist.full_name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <% } %>
+        </div>
+        
+        <% if (request.master_name) { %>
+        <div class="card">
+            <h3>Назначенный специалист</h3>
+            <p><strong>ФИО:</strong> <%= request.master_name %></p>
+            <% if (request.master_phone) { %>
+            <p><strong>Телефон:</strong> <%= request.master_phone %></p>
+            <% } %>
+        </div>
+        <% } %>
+        
+        <div class="card">
+            <h3>Информация о клиенте</h3>
+            <p><strong>ФИО:</strong> <%= request.client_name %></p>
+            <p><strong>Телефон:</strong> <%= request.client_phone %></p>
+        </div>
+    </div>
+    
+    <!-- Основная информация -->
+    <div>
+        <!-- Комментарии -->
+        <div class="card">
+            <h3>Комментарии</h3>
+            
+            <!-- Форма добавления комментария -->
+            <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #dee2e6;">
+                <h4>Добавить комментарий</h4>
+                <form onsubmit="addComment(<%= request.request_id %>, document.getElementById('commentText').value); return false;">
+                    <div class="form-group">
+                        <textarea id="commentText" placeholder="Введите комментарий..." rows="3" style="width: 100%;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Добавить комментарий</button>
+                </form>
+            </div>
+            
+            <% if (comments && comments.length > 0) { %>
+                <% comments.forEach(comment => { %>
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author"><%= comment.author_name %></span>
+                        <span style="color: #6c757d;">
+                            (<%= comment.author_type %>) - 
+                            <%= new Date(comment.created_at).toLocaleDateString('ru-RU') %> 
+                            <%= new Date(comment.created_at).toLocaleTimeString('ru-RU') %>
+                        </span>
+                    </div>
+                    <div><%= comment.message %></div>
+                </div>
+                <% }) %>
+            <% } else { %>
+                <p style="color: #6c757d; font-style: italic;">Комментариев пока нет</p>
+            <% } %>
+        </div>
+        
+        <div class="card">
+            <h3>Информация о заявке</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <h4>Описание проблемы</h4>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #6c757d;">
+                    <%= request.problem_description %>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <p><strong>Тип оборудования:</strong> <%= request.type_name %></p>
+                    <p><strong>Модель:</strong> <%= request.model_name %></p>
+                    <% if (request.completion_date) { %>
+                    <p><strong>Дата завершения:</strong> <%= new Date(request.completion_date).toLocaleDateString('ru-RU') %></p>
+                    <% } %>
+                    <% if (request.repair_parts) { %>
+                    <p><strong>Использованные запчасти:</strong> <%= request.repair_parts %></p>
+                    <% } %>
+                </div>
+                <div>
+                    <p><strong>Статус:</strong> 
+                        <span class="badge" style="background-color: <%= request.status_color %>;">
+                            <%= request.status_name %>
+                        </span>
+                    </p>
+                    <p><strong>Приоритет:</strong> 
+                        <span class="priority-<%= request.priority_level %>">
+                            <%= request.priority_level %> уровень
+                        </span>
+                    </p>
+                    <p><strong>Дата создания:</strong> <%= new Date(request.start_date).toLocaleDateString('ru-RU') %></p>
+                    <p><strong>Номер заявки:</strong> <%= request.request_number %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div>
+        <a href="javascript:history.back()" class="btn btn-secondary">Назад</a>
+    </div>
+    <div>
+        <strong>Детальная информация</strong>
+    </div>
+</div>

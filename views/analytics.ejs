@@ -1,0 +1,63 @@
+<h2>Аналитика</h2>
+
+<div class="card">
+    <h3>Продукция по типам</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Тип продукции</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% byType.forEach(function(item) { %>
+            <tr>
+                <td><%= item.product_type_name %></td>
+                <td><strong><%= item.count %></strong> шт.</td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Средняя цена по типам</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Тип продукции</th>
+                <th>Средняя цена</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% avgPrice.forEach(function(item) { %>
+            <tr>
+                <td><%= item.product_type_name %></td>
+                <td><strong><%= Math.round(item.avg_price).toLocaleString('ru-RU') %></strong> ₽</td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Топ-10 самых дорогих товаров</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 60px;">Место</th>
+                <th>Название</th>
+                <th>Цена</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% topProducts.forEach(function(item, index) { %>
+            <tr>
+                <td><strong><%= index + 1 %></strong></td>
+                <td><%= item.product_name %></td>
+                <td><strong><%= item.min_partner_price.toLocaleString('ru-RU') %></strong> ₽</td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,158 @@
+<h2>Мои заявки</h2>
+
+<% if (requests.length > 0) { %>
+<!-- Справочная информация -->
+<div class="card" style="margin-top: 30px;">
+    <h3>Информация о статусах</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 15px;">
+        <div>
+            <h4>Завершающие статусы</h4>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-danger">Отменена</span> - Заявка отменена
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-success">Завершена</span> - Заявка полностью выполнена
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-info">Готова к выдаче</span> - Ремонт завершен, можно забирать
+                </li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4>Активные статусы</h4>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-secondary">Ожидание комплектующих</span> - Нужны запчасти
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-warning">В процессе ремонта</span> - Специалист работает над заявкой
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <span class="badge badge-info">Новая заявка</span> - Ожидает назначения специалиста
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="info-text" style="margin-top: 20px;">
+        <strong>Примечание:</strong> Вы можете редактировать заявку только пока она имеет статус "Новая заявка". 
+        После назначения специалиста изменения вносятся через комментарии.
+    </div>
+</div>
+
+<!-- Статистика пользователя -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+    <div class="stat-card" style="border-left-color: #17a2b8;">
+        <h3 style="color: #17a2b8;"><%= requests.filter(r => r.status_id === 1).length %></h3>
+        <p>Новые</p>
+    </div>
+    
+    <div class="stat-card success">
+        <h3><%= requests.filter(r => r.status_id === 5).length %></h3>
+        <p>Завершено</p>
+    </div>
+    
+    <div class="stat-card warning">
+        <h3><%= requests.filter(r => [1, 2, 3].includes(r.status_id)).length %></h3>
+        <p>В работе</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3><%= requests.length %></h3>
+        <p>Всего заявок</p>
+    </div>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Действия</th>
+                <th>Специалист</th>
+                <th>Статус</th>
+                <th>Приоритет</th>
+                <th>Проблема</th>
+                <th>Оборудование</th>
+                <th>Дата создания</th>
+                <th>№ заявки</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% requests.forEach(request => { %>
+            <tr>
+                <td>
+                    <div style="display: flex; gap: 5px;">
+                        <% if (request.status_id === 1) { %>
+                        <a href="/requests/<%= request.request_id %>/edit" class="btn btn-secondary btn-sm" title="Редактировать">
+                            Изменить
+                        </a>
+                        <% } %>
+                        <a href="/requests/<%= request.request_id %>" class="btn btn-info btn-sm" title="Просмотр">
+                            Просмотр
+                        </a>
+                    </div>
+                </td>
+                <td>
+                    <% if (request.master_name) { %>
+                        <div style="font-size: 13px;"><%= request.master_name %></div>
+                    <% } else { %>
+                        <span style="color: #6c757d; font-style: italic;">Не назначен</span>
+                    <% } %>
+                </td>
+                <td>
+                    <span class="badge" style="background-color: <%= request.status_color %>;">
+                        <%= request.status_name %>
+                    </span>
+                </td>
+                <td>
+                    <span class="priority-<%= request.priority_level %>">
+                        ● <%= request.priority_level %>
+                    </span>
+                </td>
+                <td>
+                    <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                         title="<%= request.problem_description %>">
+                        <%= request.problem_description %>
+                    </div>
+                </td>
+                <td>
+                    <div><strong><%= request.type_name %></strong></div>
+                    <div style="font-size: 12px; color: #6c757d;"><%= request.model_name %></div>
+                </td>
+                <td>
+                    <%= new Date(request.start_date).toLocaleDateString('ru-RU') %>
+                </td>
+                <td>
+                    <strong><%= request.request_number %></strong>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<div class="toolbar">
+    <div>
+        <a href="/requests/create" class="btn btn-success">Новая заявка</a>
+    </div>
+    <div>
+        <strong>Всего заявок: <%= requests.length %></strong>
+    </div>
+</div>
+
+<% } else { %>
+<!-- Пустое состояние -->
+<div style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 64px; margin-bottom: 20px; color: #6c757d;">□</div>
+    <h3 style="color: #6c757d; margin-bottom: 15px;">У вас пока нет заявок</h3>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        Создайте первую заявку на ремонт климатического оборудования
+    </p>
+    <a href="/requests/create" class="btn btn-success" style="padding: 15px 30px; font-size: 16px;">
+        Создать первую заявку
+    </a>
+</div>
+<% } %>

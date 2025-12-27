@@ -1,0 +1,64 @@
+<h2>Продукция</h2>
+
+<div class="toolbar">
+    <form method="GET" style="margin: 0; display: flex; align-items: center;">
+        <input type="text" name="search" class="search-box" placeholder="Поиск по названию или артикулу" value="<%= search %>">
+        <button type="submit" class="btn">Найти</button>
+        <% if (search) { %>
+        <a href="/products" class="btn btn-secondary" style="margin-left: 8px;">Сбросить</a>
+        <% } %>
+    </form>
+    
+    <a href="/products/add" class="btn btn-success">Добавить продукцию</a>
+</div>
+
+<% if (products && products.length > 0) { %>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Артикул</th>
+            <th>Тип</th>
+            <th>Материал</th>
+            <th>Цена</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% products.forEach(function(product) { %>
+        <tr>
+            <td><%= product.product_id %></td>
+            <td><strong><%= product.product_name %></strong></td>
+            <td><%= product.article_number %></td>
+            <td><%= product.product_type_name %></td>
+            <td><%= product.material_type_name %></td>
+            <td><%= product.min_partner_price.toLocaleString('ru-RU') %> ₽</td>
+            <td>
+                <% if (product.is_available) { %>
+                <span class="badge badge-success">Доступен</span>
+                <% } else { %>
+                <span class="badge badge-danger">Недоступен</span>
+                <% } %>
+            </td>
+            <td>
+                <a href="/products/edit/<%= product.product_id %>" class="btn" style="padding: 6px 12px; font-size: 13px; margin-right: 4px;">Изменить</a>
+                <a href="/products/delete/<%= product.product_id %>" 
+                   class="btn btn-danger" 
+                   style="padding: 6px 12px; font-size: 13px;"
+                   onclick="return confirm('Вы уверены, что хотите удалить эту продукцию?')">Удалить</a>
+            </td>
+        </tr>
+        <% }); %>
+    </tbody>
+</table>
+
+<p class="info-text">
+    Всего найдено: <strong><%= products.length %></strong> записей
+</p>
+<% } else { %>
+<div class="alert alert-danger">
+    Продукция не найдена. <% if (search) { %>Попробуйте изменить поисковый запрос.<% } %>
+</div>
+<% } %>
