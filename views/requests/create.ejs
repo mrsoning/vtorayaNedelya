@@ -39,6 +39,12 @@
     <div class="card">
         <h3>Информация о заявке</h3>
         
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="info-text" style="color: #dc3545; margin-bottom: 15px; padding: 10px; background: #f8d7da; border-radius: 4px;">
+            <%= error %>
+        </div>
+        <% } %>
+        
         <form method="POST" action="/requests/create" id="createRequestForm">
             <div class="form-group">
                 <label for="priority_level">Приоритет заявки</label>

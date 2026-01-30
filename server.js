@@ -280,6 +280,21 @@ app.post('/requests/create', requireAuth, requireRole(['Заказчик', 'Оп
   try {
     const { equipment_type, equipment_model, problem_description, priority_level } = req.body;
     
+    // Валидация по спецификации: описание мин. 10 символов
+    const desc = (problem_description || '').trim();
+    if (desc.length < 10) {
+      const equipmentTypes = db.prepare('SELECT * FROM equipment_types ORDER BY type_name').all();
+      return res.status(400).render('requests/create', {
+        title: 'Создание заявки',
+        equipmentTypes,
+        error: 'Описание проблемы должно содержать не менее 10 символов'
+      });
+    }
+    
+    // Валидация приоритета 1–5
+    let priority = parseInt(priority_level, 10);
+    if (isNaN(priority) || priority < 1 || priority > 5) priority = 1;
+    
     // Генерируем номер заявки
     const lastRequest = db.prepare('SELECT request_number FROM repair_requests ORDER BY request_id DESC LIMIT 1').get();
     let nextNumber = 1;
@@ -297,7 +312,7 @@ app.post('/requests/create', requireAuth, requireRole(['Заказчик', 'Оп
       ) VALUES (?, date('now'), ?, ?, ?, 1, ?, ?)
     `);
     
-    stmt.run(requestNumber, problem_description, priority_level || 1, req.session.user.user_id, equipment_type, equipment_model);
+    stmt.run(requestNumber, desc, priority, req.session.user.user_id, equipment_type, equipment_model);
     
     res.redirect('/my-requests');
   } catch (error) {
@@ -461,39 +476,195 @@ app.post('/api/add-comment', requireAuth, (req, res) => {
     
     res.json({ success: true, message: 'Комментарий добавлен' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
+// ========== REST API по спецификации модулей ==========
 
-
-// Мои работы (для специалистов)
-app.get('/my-work', requireAuth, (req, res) => {
+// GET /api/statistics/general — общая статистика
+app.get('/api/statistics/general', requireAuth, (req, res) => {
+  let statsService = null;
   try {
-    const requests = db.prepare(`
-      SELECT 
-        r.*,
-        c.full_name as client_name,
-        c.phone as client_phone,
-        et.type_name,
-        em.model_name,
-        rs.status_name,
-        rs.status_color
-      FROM repair_requests r
-      JOIN users c ON r.client_id = c.user_id
-      JOIN equipment_types et ON r.type_id = et.type_id
-      JOIN equipment_models em ON r.model_id = em.model_id
-      JOIN request_statuses rs ON r.status_id = rs.status_id
-      WHERE r.master_id = ?
-      ORDER BY r.created_at DESC
-    `).all(req.session.user.user_id);
-    
-    res.render('requests/my_work', { 
-      title: 'Мои работы',
-      requests
+    const filters = RoleAccessManager.getDataFilters(req.session.user);
+    statsService = new StatisticsService();
+    const data = statsService.calculateGeneralStatistics(filters);
+    statsService.close();
+    res.json({ success: true, data, error: null });
+  } catch (error) {
+    if (statsService) statsService.close();
+    res.status(500).json({ success: false, data: null, error: error.message });
+  }
+});
+
+// GET /api/statistics/equipment — статистика по оборудованию
+app.get('/api/statistics/equipment', requireAuth, (req, res) => {
+  let statsService = null;
+  try {
+    const filters = RoleAccessManager.getDataFilters(req.session.user);
+    statsService = new StatisticsService();
+    const data = statsService.calculateEquipmentStatistics(filters);
+    statsService.close();
+    const totalCount = data.reduce((sum, row) => sum + (row.count || 0), 0);
+    res.json({ success: true, data, totalCount, error: null });
+  } catch (error) {
+    if (statsService) statsService.close();
+    res.status(500).json({ success: false, data: null, error: error.message });
+  }
+});
+
+// POST /api/reports/generate — генерация отчёта (JSON)
+app.post('/api/reports/generate', requireAuth, RoleAccessManager.requireReportAccess(['Менеджер', 'Менеджер по качеству', 'Администратор', 'Специалист', 'Заказчик']), (req, res) => {
+  let statsService = null;
+  try {
+    const filters = req.userFilters || RoleAccessManager.getDataFilters(req.session.user);
+    const userRole = req.session.user.user_type.trim();
+    statsService = new StatisticsService();
+    const generalStats = statsService.calculateGeneralStatistics(filters);
+    const equipmentStats = statsService.calculateEquipmentStatistics(filters);
+    const statusStats = statsService.calculateStatusStatistics(filters);
+    let workshopStats = [];
+    if (['Менеджер', 'Менеджер по качеству', 'Администратор', 'Специалист'].includes(userRole)) {
+      workshopStats = statsService.calculateWorkshopStatistics(filters);
+    }
+    statsService.close();
+    const report = {
+      title: userRole === 'Заказчик' ? 'Отчет по моим заявкам' : userRole === 'Специалист' ? 'Отчет по моим работам' : 'Общий отчет системы',
+      generatedAt: new Date(),
+      summary: generalStats,
+      equipmentBreakdown: equipmentStats,
+      statusBreakdown: statusStats,
+      workshopPerformance: workshopStats
+    };
+    res.json({ success: true, report, error: null });
+  } catch (error) {
+    if (statsService) statsService.close();
+    res.status(500).json({ success: false, report: null, error: error.message });
+  }
+});
+
+// POST /api/reports/export/pdf — экспорт отчёта в PDF
+app.post('/api/reports/export/pdf', requireAuth, RoleAccessManager.requireReportAccess(['Менеджер', 'Менеджер по качеству', 'Администратор', 'Специалист', 'Заказчик']), async (req, res) => {
+  let statsService = null;
+  let pdfService = null;
+  try {
+    const filters = req.userFilters || RoleAccessManager.getDataFilters(req.session.user);
+    const userRole = req.session.user.user_type.trim();
+    statsService = new StatisticsService();
+    const generalStats = statsService.calculateGeneralStatistics(filters);
+    const equipmentStats = statsService.calculateEquipmentStatistics(filters);
+    const statusStats = statsService.calculateStatusStatistics(filters);
+    let workshopStats = [];
+    if (['Менеджер', 'Менеджер по качеству', 'Администратор', 'Специалист'].includes(userRole)) {
+      workshopStats = statsService.calculateWorkshopStatistics(filters);
+    }
+    statsService.close();
+    const reportData = {
+      totalRequests: generalStats.totalRequests,
+      completedRequests: generalStats.completedRequests,
+      activeRequests: generalStats.activeRequests,
+      avgCompletionTime: generalStats.avgCompletionTime,
+      equipmentStats,
+      statusStats,
+      workshopStats
+    };
+    const reportTitle = (req.body.options && req.body.options.title) || (userRole === 'Заказчик' ? 'Отчет по моим заявкам' : userRole === 'Специалист' ? 'Отчет по моим работам' : 'Отчет системы');
+    pdfService = new PDFService();
+    const pdfBuffer = await pdfService.generateReportPDF(reportData, reportTitle);
+    await pdfService.close();
+    const filename = `report_${new Date().toISOString().split('T')[0]}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (error) {
+    if (statsService) statsService.close();
+    if (pdfService) await pdfService.close();
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/requests — создание заявки (REST)
+app.post('/api/requests', requireAuth, requireRole(['Заказчик', 'Оператор', 'Менеджер', 'Менеджер по качеству']), (req, res) => {
+  try {
+    const body = req.body;
+    const clientId = body.clientId != null ? body.clientId : req.session.user.user_id;
+    if (req.session.user.user_type.trim() === 'Заказчик' && clientId !== req.session.user.user_id) {
+      return res.status(403).json({ success: false, error: 'Клиент может создавать заявки только от своего имени' });
+    }
+    const problemDescription = (body.problemDescription || body.problem_description || '').trim();
+    if (problemDescription.length < 10) {
+      return res.status(400).json({ success: false, error: 'VAL_002', message: 'Описание проблемы не менее 10 символов' });
+    }
+    let priorityLevel = parseInt(body.priorityLevel != null ? body.priorityLevel : body.priority_level, 10);
+    if (isNaN(priorityLevel) || priorityLevel < 1 || priorityLevel > 5) priorityLevel = 1;
+    const equipmentType = body.equipmentType != null ? body.equipmentType : body.equipment_type;
+    const equipmentModel = body.equipmentModel != null ? body.equipmentModel : body.equipment_model;
+    if (!equipmentType || !equipmentModel) {
+      return res.status(400).json({ success: false, error: 'VAL_002', message: 'Тип и модель оборудования обязательны' });
+    }
+    const lastRequest = db.prepare('SELECT request_number FROM repair_requests ORDER BY request_id DESC LIMIT 1').get();
+    let nextNumber = 1;
+    if (lastRequest) {
+      const lastNum = parseInt(lastRequest.request_number.split('-')[1], 10);
+      nextNumber = isNaN(lastNum) ? 1 : lastNum + 1;
+    }
+    const requestNumber = `REQ-${String(nextNumber).padStart(6, '0')}`;
+    const stmt = db.prepare(`
+      INSERT INTO repair_requests (request_number, start_date, problem_description, priority_level, client_id, status_id, type_id, model_id)
+      VALUES (?, date('now'), ?, ?, ?, 1, ?, ?)
+    `);
+    const info = stmt.run(requestNumber, problemDescription, priorityLevel, clientId, equipmentType, equipmentModel);
+    const request_id = info.lastInsertRowid;
+    const row = db.prepare('SELECT request_id, request_number, start_date, problem_description, priority_level, created_at FROM repair_requests WHERE request_id = ?').get(request_id);
+    res.status(201).json({
+      success: true,
+      request: {
+        request_id: row.request_id,
+        request_number: row.request_number,
+        status: 'Новая заявка',
+        created_at: row.created_at,
+        estimated_date: null
+      },
+      error: null
     });
   } catch (error) {
-    res.status(500).send('Ошибка: ' + error.message);
+    res.status(500).json({ success: false, request: null, error: error.message });
+  }
+});
+
+// PUT /api/requests/:id/status — обновление статуса заявки
+app.put('/api/requests/:id/status', requireAuth, (req, res) => {
+  try {
+    const requestId = parseInt(req.params.id, 10);
+    const { newStatusId, status_id, comment } = req.body;
+    const newStatus = newStatusId != null ? newStatusId : status_id;
+    const user = req.session.user;
+    const request = db.prepare('SELECT * FROM repair_requests WHERE request_id = ?').get(requestId);
+    if (!request) {
+      return res.status(404).json({ success: false, error: 'Заявка не найдена' });
+    }
+    if (user.user_type.trim() === 'Специалист' && request.master_id !== user.user_id) {
+      return res.status(403).json({ success: false, error: 'PERM_001', message: 'Недостаточно прав' });
+    }
+    if (user.user_type.trim() === 'Заказчик' && request.client_id !== user.user_id) {
+      return res.status(403).json({ success: false, error: 'PERM_002', message: 'Доступ к ресурсу запрещен' });
+    }
+    const oldStatusRow = db.prepare('SELECT status_name FROM request_statuses WHERE status_id = ?').get(request.status_id);
+    db.prepare('UPDATE repair_requests SET status_id = ?, updated_at = datetime(\'now\') WHERE request_id = ?').run(newStatus, requestId);
+    const newStatusRow = db.prepare('SELECT status_name FROM request_statuses WHERE status_id = ?').get(newStatus);
+    res.json({
+      success: true,
+      statusChange: {
+        old_status: (oldStatusRow && oldStatusRow.status_name) || '',
+        new_status: (newStatusRow && newStatusRow.status_name) || '',
+        changed_at: new Date(),
+        changed_by: user.full_name
+      },
+      error: null
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
