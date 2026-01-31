@@ -40,6 +40,12 @@ class StatisticsService {
         : `${baseQuery} WHERE r.status_id = 5`;
       const completedRequests = this.db.prepare(completedQuery).get(...params).count;
       
+      // Cancelled requests count (status_id = 6)
+      const cancelledQuery = whereClause
+        ? `${baseQuery} ${whereClause} AND r.status_id = 6`
+        : `${baseQuery} WHERE r.status_id = 6`;
+      const cancelledRequests = this.db.prepare(cancelledQuery).get(...params).count;
+      
       // Average completion time calculation
       const avgTimeQuery = whereClause
         ? `SELECT AVG(julianday(r.completion_date) - julianday(r.start_date)) as avg_days
@@ -52,11 +58,16 @@ class StatisticsService {
       const avgTime = this.db.prepare(avgTimeQuery).get(...params);
       const avgCompletionTime = avgTime.avg_days ? Math.round(avgTime.avg_days * 10) / 10 : 0;
       
+      const completionRate = totalRequests > 0 ? Math.round((completedRequests / totalRequests) * 1000) / 10 : 0;
+      
       return {
         totalRequests,
         activeRequests,
         completedRequests,
-        avgCompletionTime
+        cancelledRequests,
+        avgCompletionTime,
+        completionRate,
+        timestamp: new Date()
       };
     } catch (error) {
       throw new Error(`Statistics calculation failed: ${error.message}`);
